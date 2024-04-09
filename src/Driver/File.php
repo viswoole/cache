@@ -44,6 +44,7 @@ class File extends Driver
     protected int    $expire = 0
   )
   {
+    if (empty($this->tag_store)) $this->tag_store = 'TAG_STORE';
     $this->storage = rtrim($storage, '/');
   }
 
