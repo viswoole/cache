@@ -28,7 +28,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "ViSwoole\\Log\\Tests\\": "tests"
+      "ViSwoole\\Cache\\Tests\\": "tests"
     }
   },
   "extra": {
