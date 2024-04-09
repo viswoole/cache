@@ -196,7 +196,7 @@ class File extends Driver
   {
     $filename = $this->filename($key);
     $data = $this->serialize($value);
-    $expire = $expire === null ? $this->expire : $this->expireTimeToInt($expire);
+    $expire = $expire === null ? $this->expire : $this->getExpireTime($expire);
     // 判断是否需要设置过期时间
     if ($expire > 0) {
       $expire = time() + $expire;

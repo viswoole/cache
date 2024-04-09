@@ -126,7 +126,7 @@ abstract class Driver implements CacheDriverInterface
    * @param DateTime|int $expire 有效期
    * @return int 秒
    */
-  protected function expireTimeToInt(DateTime|int $expire): int
+  protected function getExpireTime(DateTime|int $expire): int
   {
     if ($expire instanceof DateTime) {
       $expire = $expire->getTimestamp() - time();
