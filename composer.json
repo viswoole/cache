@@ -16,7 +16,8 @@
   "require": {
     "php": ">=8.3",
     "ext-swoole": ">=5.1",
-    "viswoole/core": "@dev"
+    "viswoole/core": "@dev",
+    "ext-redis": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.5"
