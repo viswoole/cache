@@ -16,8 +16,77 @@ declare (strict_types=1);
 namespace ViSwoole\Cache\Tests;
 
 use PHPUnit\Framework\TestCase;
+use ViSwoole\Cache\Driver\File;
 
 class FileTest extends TestCase
 {
+  protected File $cache;
 
+  public function testSet()
+  {
+    $this->cache->set('test', '123');
+    static::assertEquals('123', $this->cache->get('test'));
+  }
+
+  public function testInc()
+  {
+    $this->cache->set('test', 1);
+    static::assertEquals(2, $this->cache->inc('test'));
+    static::assertEquals(1, $this->cache->dec('test'));
+  }
+
+  public function testPull()
+  {
+    $this->cache->set('test', 1);
+    static::assertEquals(1, $this->cache->pull('test'));
+    static::assertFalse($this->cache->has('test'));
+  }
+
+  public function testClear()
+  {
+    $this->cache->set('test', 1);
+    $this->cache->clear();
+    static::assertFalse($this->cache->has('test'));
+  }
+
+  public function testDelete()
+  {
+    $this->cache->delete('test');
+    static::assertNull($this->cache->get('test'));
+  }
+
+  public function testArray()
+  {
+    $this->cache->set('test', [1, 2, 3]);
+    static::assertEquals([1, 2, 3], $this->cache->get('test'));
+    $this->cache->sAddArray('test', [4, 5, 6]);
+    static::assertEquals([1, 2, 3, 4, 5, 6], $this->cache->get('test'));
+    $this->cache->sRemoveArray('test', [4, 5, 6]);
+    static::assertEquals([1, 2, 3], $this->cache->get('test'));
+  }
+
+  public function testTag()
+  {
+    $tagInstance = $this->cache->tag('testTag');
+    $tagInstance->set('test', 123);
+    static::assertEquals(['testTag'], $this->cache->getTags());
+    static::assertEquals(123, $this->cache->get('test'));
+    $tagInstance->clear();
+    static::assertNull($this->cache->get('test'));
+  }
+
+  public function testLock()
+  {
+    $id = $this->cache->lock('test');
+    static::assertTrue($this->cache->unlock($id));
+    static::assertTrue(is_string($this->cache->lock('test')));
+  }
+
+  protected function setUp(): void
+  {
+    parent::setUp();
+    // 配置全局的根路径
+    !defined('BASE_PATH') && define('BASE_PATH', dirname(realpath(__DIR__), 4));
+    $this->cache = new File();
+  }
 }

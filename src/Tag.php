@@ -53,7 +53,7 @@ class Tag implements CacheTagInterface
   #[Override] public function clear(): void
   {
     foreach ($this->tags as $tag) {
-      $names = $this->driver->getArray($tag, false);
+      $names = $this->driver->getArray($tag);
       // 清除标签下的缓存
       $this->driver->delete($names);
 
@@ -61,7 +61,7 @@ class Tag implements CacheTagInterface
       $this->driver->delete($tag);
 
       // 从标签库库中删除标签
-      $this->driver->sRemoveArray($this->driver->getTagStoreName(), $tag, false);
+      $this->driver->sRemoveArray($this->driver->getTagStoreName(), $tag);
     }
   }
 
@@ -117,7 +117,7 @@ class Tag implements CacheTagInterface
     if (is_string($keys)) $keys = [$keys];
     foreach ($this->tags as $tag) {
       // 从标签数据集中移除缓存标记key
-      $result = $this->driver->sRemoveArray($tag, $keys, false);
+      $result = $this->driver->sRemoveArray($tag, $keys);
       if ($result === false) {
         $keys = implode(',', $keys);
         throw new CacheErrorException("从标签集合中剔除{$keys}缓存失败");
@@ -125,10 +125,8 @@ class Tag implements CacheTagInterface
       // 移除缓存数据
       $this->driver->delete($keys);
       // 判断标签数据集是否已为空，如果为空则把标签从标签总仓库数据集中移除
-      $arr = $this->driver->getArray($tag, false);
-      if (empty($arr)) {
-        $this->driver->sRemoveArray($this->driver->getTagStoreName(), $tag, false);
-      }
+      $arr = $this->driver->getArray($tag);
+      if (empty($arr)) $this->driver->sRemoveArray($this->driver->getTagStoreName(), $tag);
     }
   }
 }

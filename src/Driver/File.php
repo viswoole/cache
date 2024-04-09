@@ -168,15 +168,15 @@ class File extends Driver
    * @access public
    * @param string $key 缓存标识
    * @param mixed $value 存储数据
-   * @param DateTime|int $expire 有效时间（秒）
+   * @param DateTime|int|null $expire 有效时间（秒）0为永不过期
    * @param bool $NX 如果为true则缓存不存在才会写入
    * @return bool
    */
   #[Override] public function set(
-    string       $key,
-    mixed        $value,
-    DateTime|int $expire = 0,
-    bool         $NX = false
+    string            $key,
+    mixed             $value,
+    DateTime|int|null $expire = 0,
+    bool              $NX = false
   ): bool
   {
     return $this->setRaw($key, $value, $expire, $NX);
@@ -196,7 +196,7 @@ class File extends Driver
   {
     $filename = $this->filename($key);
     $data = $this->serialize($value);
-    $expire = $expire === null ? $this->expire : $this->getExpireTime($expire);
+    $expire = $expire === null ? $this->expire : $this->expireTimeToInt($expire);
     // 判断是否需要设置过期时间
     if ($expire > 0) {
       $expire = time() + $expire;
@@ -283,14 +283,13 @@ class File extends Driver
    *
    * @access public
    * @param string $key 缓存标识
-   * @return mixed
+   * @return mixed 如果不存在会返回false
    */
   #[Override] public function pull(string $key): mixed
   {
     $result = $this->get($key, false);
 
     if ($result !== false) $this->delete($key);
-
     return $result;
   }
 
@@ -545,9 +544,7 @@ class File extends Driver
    */
   #[Override] public function getArray(string $key): array|false
   {
-    $array = $this->get($key, []);
-    if (empty($array)) return false;
-    return $array;
+    return $this->get($key, []);
   }
 
   /**
@@ -564,7 +561,7 @@ class File extends Driver
   ): false|int
   {
     $array = $this->getArray($key);
-    if ($array === false) return false;
+    if (empty($array)) return 0;
     if (is_string($values)) $values = [$values];
     $newArray = array_filter($array, function ($value) use ($values, &$count) {
       return !in_array($value, $values);

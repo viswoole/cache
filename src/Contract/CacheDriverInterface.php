@@ -53,11 +53,16 @@ interface CacheDriverInterface
    * @access public
    * @param string $key 缓存标识
    * @param mixed $value 存储数据
-   * @param DateTime|int $expire 有效时间（秒）
+   * @param DateTime|int|null $expire 有效时间（秒）0为永不过期
    * @param bool $NX 如果为true则缓存不存在才会写入
    * @return bool
    */
-  public function set(string $key, mixed $value, DateTime|int $expire = 0, bool $NX = false): bool;
+  public function set(
+    string            $key,
+    mixed             $value,
+    DateTime|int|null $expire = null,
+    bool              $NX = false
+  ): bool;
 
   /**
    * 追加（数组）缓存
@@ -231,6 +236,7 @@ interface CacheDriverInterface
    * @return static
    */
   public function setSerialize(
-    string|Closure $set = 'serialize', string|Closure $get = 'unserialize'
+    string|Closure $set = 'serialize',
+    string|Closure $get = 'unserialize'
   ): static;
 }

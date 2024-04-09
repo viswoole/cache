@@ -126,7 +126,7 @@ abstract class Driver implements CacheDriverInterface
    * @param DateTime|int $expire 有效期
    * @return int 秒
    */
-  protected function getExpireTime(DateTime|int $expire): int
+  protected function expireTimeToInt(DateTime|int $expire): int
   {
     if ($expire instanceof DateTime) {
       $expire = $expire->getTimestamp() - time();
@@ -142,9 +142,6 @@ abstract class Driver implements CacheDriverInterface
    */
   protected function serialize(mixed $data): string
   {
-    if (is_numeric($data)) {
-      return (string)$data;
-    }
     $serialize = $this->serialize['set'] ?? 'serialize';
     return $serialize($data);
   }
@@ -153,14 +150,10 @@ abstract class Driver implements CacheDriverInterface
    * 反序列化数据
    * @access protected
    * @param string $data 缓存数据
-   * @return mixed
-   * @noinspection PhpMixedReturnTypeCanBeReducedInspection
+   * @return string
    */
-  protected function unserialize(string $data): mixed
+  protected function unserialize(string $data): string
   {
-    if (is_numeric($data)) {
-      return $data;
-    }
     $unserialize = $this->serialize['get'] ?? 'unserialize';
     return $unserialize($data);
   }
