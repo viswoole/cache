@@ -93,13 +93,13 @@ class Tag implements CacheTagInterface
   {
     foreach ($this->tags as $tag) {
       // 把缓存键名添加到集合中
-      $result = $this->driver->sAddArray($tag, $key, false);
+      $result = $this->driver->sAddArray($tag, $key);
       if ($result === false) {
         throw new CacheErrorException('往标签集合中追加缓存键名失败');
       }
     }
     // 把标签设置到缓存标签集合中
-    $result = $this->driver->sAddArray($this->driver->getTagStoreName(), $this->tags, false);
+    $result = $this->driver->sAddArray($this->driver->getTagStoreName(), $this->tags);
     if ($result === false) {
       throw new CacheErrorException('往标签集合中追加缓存键名失败');
     }
