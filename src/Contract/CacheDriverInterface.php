@@ -31,6 +31,13 @@ interface CacheDriverInterface
   public function inc(string $key, int $step = 1): bool|int;
 
   /**
+   * 获取标签仓库名称
+   *
+   * @return string
+   */
+  public function getTagStoreName(): string;
+
+  /**
    * 自减缓存（针对数值缓存）
    *
    * @access public
@@ -114,7 +121,7 @@ interface CacheDriverInterface
    * @param bool $autoUnlock 在程序运行完毕后自动解锁默认false
    * @param int $retry 等待尝试次数
    * @param int|float $sleep 等待休眠时间/秒 最小精度为毫秒（0.001 秒）
-   * @return int 成功返回锁id 失败抛出系统繁忙错误
+   * @return string 成功返回锁id 失败抛出系统繁忙错误
    */
   public function lock(
     string    $scene,
@@ -122,16 +129,16 @@ interface CacheDriverInterface
     bool      $autoUnlock = false,
     int       $retry = 5,
     int|float $sleep = 0.2
-  ): int;
+  ): string;
 
   /**
    * 解除锁
    *
    * @access public
-   * @param int|null $id 锁id
-   * @return bool
+   * @param string $id 通过lock方法返回的锁ID
+   * @return bool 解锁成功返回true，否则返回false
    */
-  public function unlock(int $id = null): bool;
+  public function unlock(string $id): bool;
 
   /**
    * 关闭连接(实例销毁会自动关闭连接/归还连接到连接池)
@@ -188,20 +195,18 @@ interface CacheDriverInterface
    * @access public
    * @param string $key 缓存名称
    * @param array|string $array 集合
-   * @param bool $serialize 是否序列化
    * @return false|int 如果写入的值已存在则会返回false，其他返回写入的数量
    */
-  public function sAddArray(string $key, array|string $array, bool $serialize = true): false|int;
+  public function sAddArray(string $key, array|string $array): false|int;
 
   /**
    * 获取数组集合
    *
    * @access public
    * @param string $key 集合名称
-   * @param bool $serialize 是否序列化
    * @return array|false
    */
-  public function getArray(string $key, bool $serialize = true): array|false;
+  public function getArray(string $key): array|false;
 
   /**
    * 从集合中移除元素
@@ -212,7 +217,9 @@ interface CacheDriverInterface
    * @param bool $serialize 是否序列化
    * @return false|int
    */
-  public function sRemoveArray(string $key, array|string $values, bool $serialize = true
+  public function sRemoveArray(
+    string       $key,
+    array|string $values
   ): false|int;
 
   /**
