@@ -22,9 +22,11 @@ use Swoole\Coroutine\System;
 use Throwable;
 use ViSwoole\Cache\Driver;
 use ViSwoole\Cache\Exception\CacheErrorException;
+use ViSwoole\Core\Coroutine;
 
 class File extends Driver
 {
+  public const string EXPIRE_PATTERN = '/^expire\((\d+)\)/';
   protected string $storage;
   /**
    * @var array 锁
@@ -49,12 +51,7 @@ class File extends Driver
   }
 
   /**
-   * 自增缓存（针对数值缓存）
-   *
-   * @access public
-   * @param string $key 缓存标识
-   * @param int $step 步长
-   * @return false|int 失败返回false成功返回记录值
+   * @inheritDoc
    */
   #[Override] public function inc(string $key, int $step = 1): false|int
   {
@@ -69,12 +66,7 @@ class File extends Driver
   }
 
   /**
-   * 读取缓存
-   *
-   * @access public
-   * @param string $key 不带前缀的名称
-   * @param mixed $default 默认值
-   * @return mixed
+   * @inheritDoc
    */
   #[Override] public function get(string $key, mixed $default = null): mixed
   {
@@ -85,7 +77,7 @@ class File extends Driver
    * 获取缓存内容
    *
    * @param string $key
-   * @return mixed|null
+   * @return mixed|null 返回null代表无缓存
    */
   protected function getRaw(string $key): mixed
   {
@@ -93,24 +85,17 @@ class File extends Driver
     if (!is_file($filename)) return null;
 
     $fileContent = file_get_contents($filename);
-
-    $expirePattern = '/^expire\((\d+)\)/';
-
-    if (preg_match($expirePattern, $fileContent, $matches)) {
-      $fileExpireTime = (int)$matches[1];
-      if ($fileExpireTime < time()) {
+    if (preg_match(self::EXPIRE_PATTERN, $fileContent, $matches)) {
+      $fileExpireTime = (int)$matches[1] - time();
+      if ($fileExpireTime < 0) {
         // 文件已经过期，删除文件
-        $this->unlink($filename);
+        $this->unlock($filename);
         return null;
       } else {
-        // 文件尚未过期，提取数据并反序列化
-        $data = substr($fileContent, strlen($matches[0]));
-        return $this->unserialize($data);
+        $fileContent = substr($fileContent, strlen($matches[0]));
       }
-    } else {
-      // 文件没有设置到期时间，永久有效
-      return $this->unserialize($fileContent);
     }
+    return $this->unserialize($fileContent);
   }
 
   /**
@@ -146,39 +131,40 @@ class File extends Driver
   }
 
   /**
-   * 删除文件
-   *
-   * @param string $path
-   * @return bool
+   * @inheritDoc
    */
-  protected function unlink(string $path): bool
+  #[Override] public function unlock(string $id): bool
   {
-    try {
-      $result = is_file($path) && unlink($path);
-      $dir = dirname($path);
-      // 如果目录为空，删除目录
-      if (count(glob($dir . '/*')) === 0) rmdir($dir);
-      return $result;
-    } catch (Throwable) {
+    if (empty($this->lockList)) return false;
+    if (!isset($this->lockList[$id])) return false;
+    $lockInfo = $this->lockList[$id];
+    $lockHandle = $lockInfo['lockHandle'];
+    $secretKey = $lockInfo['secretKey'];
+    if (is_resource($lockHandle)) {
+      // 读取文件内容
+      $fileContent = file_get_contents(stream_get_meta_data($lockHandle)['uri']);
+      if ($fileContent === $secretKey) {
+        // 如果文件内容与锁的secretKey匹配，解锁
+        flock($lockHandle, LOCK_UN);
+        fclose($lockHandle);
+        unset($this->lockList[$id]);
+        return true;
+      } else {
+        return false;
+      }
+    } else {
       return false;
     }
   }
 
   /**
-   * 写入缓存
-   *
-   * @access public
-   * @param string $key 缓存标识
-   * @param mixed $value 存储数据
-   * @param DateTime|int|null $expire 有效时间（秒）0为永不过期
-   * @param bool $NX 如果为true则缓存不存在才会写入
-   * @return bool
+   * @inheritDoc
    */
   #[Override] public function set(
-    string            $key,
-    mixed             $value,
-    DateTime|int|null $expire = 0,
-    bool              $NX = false
+    string       $key,
+    mixed        $value,
+    DateTime|int $expire = null,
+    bool         $NX = false
   ): bool
   {
     return $this->setRaw($key, $value, $expire, $NX);
@@ -198,7 +184,7 @@ class File extends Driver
   {
     $filename = $this->filename($key);
     $data = $this->serialize($value);
-    $expire = $expire === null ? $this->expire : $this->getExpireTime($expire);
+    $expire = $expire === null ? $this->expire : $this->formatExpireTime($expire);
     // 判断是否需要设置过期时间
     if ($expire > 0) {
       $expire = time() + $expire;
@@ -211,7 +197,7 @@ class File extends Driver
       } else {
         // 文件存在则判断文件是否过期，过期则写入
         $content = file_get_contents($filename);
-        if ($this->isExpire($content)) {
+        if ($this->hasExpire($content) === true) {
           $result = file_put_contents($filename, $data, LOCK_EX | LOCK_NB);
         } else {
           $result = false;
@@ -228,25 +214,36 @@ class File extends Driver
    * 判断是否过期
    *
    * @param string $fileContent
-   * @return bool
+   * @return true|int 返回true代表已过期，返回-1则没有过期时间，返回其他数字代表剩余过期时间
    */
-  protected function isExpire(string $fileContent): bool
+  protected function hasExpire(string $fileContent): true|int
   {
-    $expirePattern = '/^expire\((\d+)\)/';
-    if (preg_match($expirePattern, $fileContent, $matches)) {
-      $fileExpireTime = (int)$matches[1];
-      if ($fileExpireTime <= time()) return true;
+    if (preg_match(self::EXPIRE_PATTERN, $fileContent, $matches)) {
+      $fileExpireTime = (int)$matches[1] - time();
+      if ($fileExpireTime > 0) {
+        return $fileExpireTime;
+      } else {
+        return true;
+      }
     }
-    return false;
+    return -1;
   }
 
   /**
-   * 自减缓存（针对数值缓存）
-   *
-   * @access public
-   * @param string $key 缓存标识
-   * @param int $step 步长
-   * @return false|int
+   * @inheritDoc
+   */
+  public function ttl(string $key): false|int
+  {
+    $filename = $this->filename($key);
+    if (!is_file($filename)) return false;
+    $fileContent = file_get_contents($filename);
+    $expire = $this->hasExpire($fileContent);
+    if ($expire === true) return false;
+    return $expire;
+  }
+
+  /**
+   * @inheritDoc
    */
   #[Override] public function dec(string $key, int $step = 1): false|int
   {
@@ -261,32 +258,7 @@ class File extends Driver
   }
 
   /**
-   * 追加（数组）缓存
-   *
-   * @access public
-   * @param string $key 缓存标识
-   * @param mixed $value 存储数据
-   * @return void
-   */
-  #[Override] public function push(string $key, mixed $value): void
-  {
-    $item = $this->get($key, []);
-
-    if (!is_array($item)) throw new CacheErrorException('only array cache can be push');
-
-    $item[] = $value;
-
-    $item = array_unique($item);
-
-    $this->set($key, $item);
-  }
-
-  /**
-   * 读取缓存并删除
-   *
-   * @access public
-   * @param string $key 缓存标识
-   * @return mixed 如果不存在会返回false
+   * @inheritDoc
    */
   #[Override] public function pull(string $key): mixed
   {
@@ -297,11 +269,7 @@ class File extends Driver
   }
 
   /**
-   * 删除缓存
-   *
-   * @access public
-   * @param array|string $keys
-   * @return false|int
+   * @inheritDoc
    */
   #[Override] public function delete(array|string $keys): false|int
   {
@@ -316,11 +284,26 @@ class File extends Driver
   }
 
   /**
-   * 判断缓存
+   * 删除文件
    *
-   * @access public
-   * @param string $key 缓存标识
+   * @param string $path
    * @return bool
+   */
+  protected function unlink(string $path): bool
+  {
+    try {
+      $result = is_file($path) && unlink($path);
+      $dir = dirname($path);
+      // 如果目录为空，删除目录
+      if (count(glob($dir . '/*')) === 0) rmdir($dir);
+      return $result;
+    } catch (Throwable) {
+      return false;
+    }
+  }
+
+  /**
+   * @inheritDoc
    */
   #[Override] public function has(string $key): bool
   {
@@ -328,10 +311,7 @@ class File extends Driver
   }
 
   /**
-   * 清除所有缓存
-   *
-   * @access public
-   * @return bool
+   * @inheritDoc
    */
   #[Override] public function clear(): bool
   {
@@ -361,15 +341,7 @@ class File extends Driver
   }
 
   /**
-   * 取锁/上锁
-   *
-   * @access public
-   * @param string $scene 业务场景
-   * @param int $expire 锁过期时间/秒
-   * @param bool $autoUnlock 在程序运行完毕后自动解锁默认false
-   * @param int $retry 等待尝试次数
-   * @param int|float $sleep 等待休眠时间/秒 最小精度为毫秒（0.001 秒）
-   * @return string 成功返回锁id 失败抛出系统繁忙错误
+   * @inheritDoc
    */
   #[Override] public function lock(
     string    $scene,
@@ -389,7 +361,7 @@ class File extends Driver
 
     $filename = $this->getLockFilename($scene);
 
-    $lockId = md5(uniqid("{$scene}_", true));
+    $lockId = md5(uniqid("{$scene}_", true) . '_' . Coroutine::getCid());
 
     $data = $expire ? "expire($expire)$lockId" : $lockId;
 
@@ -401,7 +373,7 @@ class File extends Driver
         // 读取文件内容
         $fileContent = file_get_contents(stream_get_meta_data($lockHandle)['uri']);
         //如果上一个锁还未过期则取锁失败
-        if (!$this->isExpire($fileContent)) break;
+        if ($this->hasExpire($fileContent) === true) break;
         // 将锁ID写入锁文件
         fwrite($lockHandle, $data);
         // 刷新文件缓冲区
@@ -425,17 +397,6 @@ class File extends Driver
   }
 
   /**
-   * 获取锁缓存名
-   *
-   * @param string $scene
-   * @return string
-   */
-  private function getLockKey(string $scene): string
-  {
-    return $this->getCacheKey('lock_' . $scene);
-  }
-
-  /**
    * 获取锁文件
    *
    * @param $scene
@@ -448,17 +409,7 @@ class File extends Driver
   }
 
   /**
-   * 对象销毁解锁
-   */
-  public function __destruct()
-  {
-    $this->close();
-  }
-
-  /**
-   * 关闭连接(实例销毁会自动关闭连接/归还连接到连接池)
-   *
-   * @return void
+   * @inheritDoc
    */
   #[Override] public function close(): void
   {
@@ -468,40 +419,7 @@ class File extends Driver
   }
 
   /**
-   * 解除锁
-   *
-   * @access public
-   * @param string $id 通过lock方法返回的锁ID
-   * @return bool 解锁成功返回true，否则返回false
-   */
-  #[Override] public function unlock(string $id): bool
-  {
-    if (empty($this->lockList)) return false;
-    if (!isset($this->lockList[$id])) return false;
-    $lockInfo = $this->lockList[$id];
-    $lockHandle = $lockInfo['lockHandle'];
-    $secretKey = $lockInfo['secretKey'];
-    if (is_resource($lockHandle)) {
-      // 读取文件内容
-      $fileContent = file_get_contents(stream_get_meta_data($lockHandle)['uri']);
-      if ($fileContent === $secretKey) {
-        // 如果文件内容与锁的secretKey匹配，解锁
-        flock($lockHandle, LOCK_UN);
-        fclose($lockHandle);
-        unset($this->lockList[$id]);
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
-  }
-
-  /**
-   * 获取当前对象实例
-   *
-   * @return File
+   * @inheritDoc
    */
   #[Override] public function connect(): File
   {
@@ -509,25 +427,20 @@ class File extends Driver
   }
 
   /**
-   * 往数组集合中添加记录
-   *
-   * @access public
-   * @param string $key 缓存名称
-   * @param array|string $array 集合
-   * @return false|int 如果写入的值已存在则会返回false，其他返回写入的数量
+   * @inheritDoc
    */
   #[Override] public function sAddArray(
     string       $key,
-    array|string $array,
+    array|string $values,
   ): false|int
   {
-    if (is_string($array)) $array = [$array];
+    if (is_string($values)) $values = [$values];
 
     $oldArray = $this->getArray($key);
 
     $oldArray = $oldArray === false ? [] : $oldArray;
 
-    $newArray = array_merge($oldArray, $array);
+    $newArray = array_merge($oldArray, $values);
 
     $oldLen = count($oldArray);
 
@@ -539,11 +452,7 @@ class File extends Driver
   }
 
   /**
-   * 获取数组集合
-   *
-   * @access public
-   * @param string $key 集合名称
-   * @return array|false
+   * @inheritDoc
    */
   #[Override] public function getArray(string $key): array|false
   {
@@ -551,12 +460,7 @@ class File extends Driver
   }
 
   /**
-   * 从集合中移除元素
-   *
-   * @access public
-   * @param string $key 集合名称
-   * @param array|string $values 要删除的值
-   * @return false|int
+   * @inheritDoc
    */
   #[Override] public function sRemoveArray(
     string       $key,

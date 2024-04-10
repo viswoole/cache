@@ -179,7 +179,7 @@ class Redis extends Driver
     $value = $this->serialize($value);
     $options = [];
     if ($NX) $options[] = 'NX';
-    if ($expire) $options['EX'] = $expire;
+    if ($expire > 0) $options['EX'] = $expire;
     return $this->connect()->set($key, $value, $options);
   }
 

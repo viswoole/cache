@@ -45,18 +45,6 @@ abstract class Driver implements CacheDriverInterface
   ];
 
   /**
-   * 获取实际的缓存标识
-   *
-   * @access public
-   * @param string $key 缓存名
-   * @return string
-   */
-  #[Override] public function getCacheKey(string $key): string
-  {
-    return $this->prefix . $key;
-  }
-
-  /**
    * 设置序列化方法
    *
    * @access public
@@ -121,13 +109,44 @@ abstract class Driver implements CacheDriverInterface
   }
 
   /**
+   * 销毁时自动调用close方法关闭句柄
+   */
+  public function __destruct()
+  {
+    $this->close();
+  }
+
+  /**
+   * 获取锁缓存名
+   *
+   * @param string $scene
+   * @return string
+   */
+  protected function getLockKey(string $scene): string
+  {
+    return $this->getCacheKey('lock_' . $scene);
+  }
+
+  /**
+   * 获取实际的缓存标识
+   *
+   * @access public
+   * @param string $key 缓存名
+   * @return string
+   */
+  #[Override] public function getCacheKey(string $key): string
+  {
+    return $this->prefix . $key;
+  }
+
+  /**
    * 获取有效期
    *
    * @access protected
    * @param DateTime|int $expire 有效期
    * @return int 秒
    */
-  protected function getExpireTime(DateTime|int $expire): int
+  protected function formatExpireTime(DateTime|int $expire): int
   {
     if ($expire instanceof DateTime) {
       $expire = $expire->getTimestamp() - time();

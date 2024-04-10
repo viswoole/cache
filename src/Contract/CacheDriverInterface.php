@@ -57,16 +57,12 @@ interface CacheDriverInterface
    * @param bool $NX 如果为true则缓存不存在才会写入
    * @return bool
    */
-  public function set(string $key, mixed $value, DateTime|int $expire = 0, bool $NX = false): bool;
-
-  /**
-   * 追加（数组）缓存
-   * @access public
-   * @param string $key 缓存标识
-   * @param mixed $value 存储数据
-   * @return void
-   */
-  public function push(string $key, mixed $value): void;
+  public function set(
+    string       $key,
+    mixed        $value,
+    DateTime|int $expire = 0,
+    bool         $NX = false
+  ): bool;
 
   /**
    * 读取缓存并删除
@@ -91,7 +87,7 @@ interface CacheDriverInterface
    * @access public
    * @param string $key 不带前缀的名称
    * @param mixed $default 默认值
-   * @return mixed
+   * @return mixed 如果$key不存在则返回$default默认值
    */
   public function get(string $key, mixed $default = null): mixed;
 
@@ -141,11 +137,26 @@ interface CacheDriverInterface
   public function unlock(string $id): bool;
 
   /**
-   * 关闭连接(实例销毁会自动关闭连接/归还连接到连接池)
+   * 关闭连接(实例销毁会自动关闭连接/归还连接到连接池/自动解除悲观锁)
+   *
+   * 当实例对象销毁时__destruct析构方法会自动调用close方法进行善后
    *
    * @return void
    */
   public function close(): void;
+
+  /**
+   * 获取剩余生存时间
+   *
+   * @param string $key
+   * @return false|int 如果key没有ttl，-1则返回，如果key不存在false则返回
+   */
+  public function ttl(string $key): false|int;
+
+  /**
+   * 实现析构方法，在对象销毁时自动关闭连接
+   */
+  public function __destruct();
 
   /**
    * 标签
@@ -194,10 +205,10 @@ interface CacheDriverInterface
    *
    * @access public
    * @param string $key 缓存名称
-   * @param array|string $array 集合
+   * @param array|string $values 集合
    * @return false|int 如果写入的值已存在则会返回false，其他返回写入的数量
    */
-  public function sAddArray(string $key, array|string $array): false|int;
+  public function sAddArray(string $key, array|string $values): false|int;
 
   /**
    * 获取数组集合
