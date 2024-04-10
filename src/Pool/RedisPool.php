@@ -18,6 +18,7 @@ namespace ViSwoole\Cache\Pool;
 use Override;
 use Redis;
 use RedisException;
+use Throwable;
 use ViSwoole\Cache\RedisConfig;
 use ViSwoole\Core\ConnectionPool;
 
@@ -68,7 +69,11 @@ class RedisPool extends ConnectionPool
   #[Override] protected function connectionDetection(mixed $connection): bool
   {
     if (!($connection instanceof Redis)) return false;
-    $result = $connection->ping();
-    return $result === true;
+    try {
+      $result = $connection->ping();
+    } catch (Throwable) {
+      return false;
+    }
+    return $result;
   }
 }
