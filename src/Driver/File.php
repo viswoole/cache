@@ -503,7 +503,7 @@ class File extends Driver
    *
    * @return File
    */
-  #[Override] public function handler(): File
+  #[Override] public function connect(): File
   {
     return $this;
   }

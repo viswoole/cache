@@ -178,7 +178,7 @@ interface CacheDriverInterface
    *
    * @return mixed
    */
-  public function handler(): mixed;
+  public function connect(): mixed;
 
   /**
    * 获取实际的缓存标识
