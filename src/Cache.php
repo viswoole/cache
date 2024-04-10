@@ -111,7 +111,7 @@ class Cache
       '缓存商店为空，请先配置缓存商店'
     );
     if (is_null($name)) $name = self::factory()->defaultStore;
-    $config = self::factory()->getConfig($name);
+    $config = self::getConfig($name);
     if (is_null($config)) throw new CacheErrorException("缓存商店{$name}不存在");
     $driver = $config['driver'];
     return new $driver(...$config['options']);

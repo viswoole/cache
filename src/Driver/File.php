@@ -334,13 +334,13 @@ class File extends Driver
     $items = new FilesystemIterator($dirname);
 
     foreach ($items as $item) {
-      if ($item->isDir() && !$item->isLink()) {
+      if ($item->isDir()) {
         $this->rmdir($item->getPathname());
       } else {
         $this->unlink($item->getPathname());
       }
     }
-    return rmdir($dirname);
+    return !is_dir($dirname) || rmdir($dirname);
   }
 
   /**

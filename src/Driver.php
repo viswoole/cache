@@ -72,7 +72,7 @@ abstract class Driver implements CacheDriverInterface
    */
   #[Override] public function getTagKey(string $tag): string
   {
-    return $this->prefix . 'TAG_' . $tag;
+    return $this->prefix . $tag;
   }
 
   /**
