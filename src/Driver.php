@@ -20,6 +20,7 @@ use DateTime;
 use Override;
 use ViSwoole\Cache\Contract\CacheDriverInterface;
 use ViSwoole\Cache\Contract\CacheTagInterface;
+use ViSwoole\Cache\Driver\Tag;
 
 abstract class Driver implements CacheDriverInterface
 {

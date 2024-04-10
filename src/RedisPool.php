@@ -13,14 +13,13 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Cache\Pool;
+namespace ViSwoole\Cache;
 
 use Override;
 use Redis;
 use RedisException;
 use Throwable;
-use ViSwoole\Cache\RedisConfig;
-use ViSwoole\Core\ConnectionPool;
+use ViSwoole\Core\Channel\ConnectionPool;
 
 /**
  * Redis连接池

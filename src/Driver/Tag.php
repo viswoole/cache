@@ -13,7 +13,7 @@
 
 declare (strict_types=1);
 
-namespace ViSwoole\Cache;
+namespace ViSwoole\Cache\Driver;
 
 use DateTime;
 use Override;
