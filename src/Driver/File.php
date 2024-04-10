@@ -24,6 +24,9 @@ use ViSwoole\Cache\Driver;
 use ViSwoole\Cache\Exception\CacheErrorException;
 use ViSwoole\Core\Coroutine;
 
+/**
+ * 文件缓存驱动
+ */
 class File extends Driver
 {
   public const string EXPIRE_PATTERN = '/^expire\((\d+)\)/';

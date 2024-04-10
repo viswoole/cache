@@ -24,6 +24,9 @@ use ViSwoole\Cache\Exception\CacheErrorException;
 use ViSwoole\Cache\RedisManager;
 use ViSwoole\Core\Coroutine;
 
+/**
+ * Redis缓存驱动
+ */
 class Redis extends Driver
 {
   /**
