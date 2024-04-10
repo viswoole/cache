@@ -51,22 +51,6 @@ class File extends Driver
   }
 
   /**
-   * 容器make实例化
-   */
-  public static function __make(
-    string $storage = BASE_PATH . '/runtime/cache',
-    string $prefix = '',
-    string $tag_store = 'TAG_STORE',
-    int    $expire = 0
-  ): static
-  {
-    static $instance = null;
-    if ($instance === null) $instance = new static($storage, $prefix, $tag_store, $expire);
-    return $instance;
-  }
-
-
-  /**
    * @inheritDoc
    */
   #[Override] public function inc(string $key, int $step = 1): false|int
