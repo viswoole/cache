@@ -26,9 +26,9 @@ interface CacheDriverInterface
    * @access public
    * @param string $key 缓存标识
    * @param int $step 步长
-   * @return false|int
+   * @return false|int 失败返回false成功返回记录值
    */
-  public function inc(string $key, int $step = 1): bool|int;
+  public function inc(string $key, int $step = 1): false|int;
 
   /**
    * 获取标签仓库名称
@@ -43,9 +43,9 @@ interface CacheDriverInterface
    * @access public
    * @param string $key 缓存标识
    * @param int $step 步长
-   * @return false|int
+   * @return false|int 失败返回false成功返回记录值
    */
-  public function dec(string $key, int $step = 1): bool|int;
+  public function dec(string $key, int $step = 1): false|int;
 
   /**
    * 写入缓存
@@ -53,16 +53,11 @@ interface CacheDriverInterface
    * @access public
    * @param string $key 缓存标识
    * @param mixed $value 存储数据
-   * @param DateTime|int|null $expire 有效时间（秒）0为永不过期
+   * @param DateTime|int $expire 有效时间（秒）
    * @param bool $NX 如果为true则缓存不存在才会写入
    * @return bool
    */
-  public function set(
-    string            $key,
-    mixed             $value,
-    DateTime|int|null $expire = null,
-    bool              $NX = false
-  ): bool;
+  public function set(string $key, mixed $value, DateTime|int $expire = 0, bool $NX = false): bool;
 
   /**
    * 追加（数组）缓存
@@ -236,7 +231,6 @@ interface CacheDriverInterface
    * @return static
    */
   public function setSerialize(
-    string|Closure $set = 'serialize',
-    string|Closure $get = 'unserialize'
+    string|Closure $set = 'serialize', string|Closure $get = 'unserialize'
   ): static;
 }

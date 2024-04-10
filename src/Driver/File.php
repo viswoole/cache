@@ -54,14 +54,15 @@ class File extends Driver
    * @access public
    * @param string $key 缓存标识
    * @param int $step 步长
-   * @return false|int
+   * @return false|int 失败返回false成功返回记录值
    */
-  #[Override] public function inc(string $key, int $step = 1): bool|int
+  #[Override] public function inc(string $key, int $step = 1): false|int
   {
     $data = $this->get($key);
     if (is_float($data) || is_int($data)) {
       $data += $step;
-      return $this->set($key, $data);
+      $result = $this->set($key, $data);
+      return $result ? $data : false;
     } else {
       throw new CacheErrorException('缓存值非数值，不能调用自增方法。');
     }
@@ -247,12 +248,13 @@ class File extends Driver
    * @param int $step 步长
    * @return false|int
    */
-  #[Override] public function dec(string $key, int $step = 1): bool|int
+  #[Override] public function dec(string $key, int $step = 1): false|int
   {
     $data = $this->get($key);
     if (is_float($data) || is_int($data)) {
       $data -= $step;
-      return $this->set($key, $data);
+      $result = $this->set($key, $data);
+      return $result ? $data : false;
     } else {
       throw new CacheErrorException('缓存值非数值，不能调用自减方法。');
     }
