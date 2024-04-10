@@ -170,9 +170,9 @@ abstract class Driver implements CacheDriverInterface
    * 反序列化数据
    * @access protected
    * @param string $data 缓存数据
-   * @return string
+   * @return mixed
    */
-  protected function unserialize(string $data): string
+  protected function unserialize(string $data): mixed
   {
     $unserialize = $this->serialize['get'] ?? 'unserialize';
     return $unserialize($data);
