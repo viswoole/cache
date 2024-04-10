@@ -82,11 +82,21 @@ class FileTest extends TestCase
     static::assertTrue(is_string($this->cache->lock('test')));
   }
 
+  public function testTll()
+  {
+    $this->cache->set('test', 1, 10);
+    static::assertIsInt($this->cache->ttl('test'));
+    $this->cache->set('test', 1, 0);
+    static::assertEquals(-1, $this->cache->ttl('test'));
+    static::assertFalse($this->cache->ttl('test2'));
+  }
+
   protected function setUp(): void
   {
     parent::setUp();
     // 配置全局的根路径
     !defined('BASE_PATH') && define('BASE_PATH', dirname(realpath(__DIR__), 4));
     $this->cache = new File();
+    $this->cache->clear();
   }
 }
