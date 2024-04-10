@@ -18,7 +18,7 @@ namespace ViSwoole\Cache;
 
 use InvalidArgumentException;
 
-class RedisConfig
+readonly class RedisConfig
 {
 
   /**
@@ -36,18 +36,18 @@ class RedisConfig
    * @param int $pool_fill_size 连接池最小长度，如果为0则默认不填充连接池
    */
   public function __construct(
-    public readonly string $host = '127.0.0.1',
-    public readonly int    $port = 6379,
-    public readonly string $password = '',
-    public readonly int    $db_index = 0,
-    public readonly float  $timeout = 0,
-    public readonly int    $retry_interval = 1000,
-    public readonly float  $read_timeout = 0,
-    public readonly string $prefix = '',
-    public readonly int    $expire = 0,
-    public readonly string $tag_store = 'TAG_STORE',
-    public readonly int    $pool_max_size = 64,
-    public readonly int    $pool_fill_size = 0
+    public string $host = '127.0.0.1',
+    public int    $port = 6379,
+    public string $password = '',
+    public int    $db_index = 0,
+    public float  $timeout = 0,
+    public int    $retry_interval = 1000,
+    public float  $read_timeout = 0,
+    public string $prefix = '',
+    public int    $expire = 0,
+    public string $tag_store = 'TAG_STORE',
+    public int    $pool_max_size = 64,
+    public int    $pool_fill_size = 0
   )
   {
     if (empty($this->tag_store)) throw new InvalidArgumentException('tag_store can not be empty');
