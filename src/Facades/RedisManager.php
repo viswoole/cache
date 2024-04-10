@@ -20,7 +20,7 @@ use ViSwoole\Core\Channel\ChannelManagerBaseFacade;
 
 /**
  * Redis管理器门面
- * @see ChannelManagerBaseFacade
+ * @see \ViSwoole\Cache\RedisManager
  */
 class RedisManager extends ChannelManagerBaseFacade
 {
