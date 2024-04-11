@@ -299,6 +299,7 @@ class Redis extends Driver
   #[Override] public function sRemoveArray(string $key, array|string $values): false|int
   {
     if (is_string($values)) $values = [$values];
+    $values = array_map([$this, 'serialize'], $values);
     $name = $this->getCacheKey($key);
     return $this->connect()->sRem($name, ...$values);
   }
