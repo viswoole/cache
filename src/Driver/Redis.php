@@ -113,7 +113,7 @@ class Redis extends Driver
   #[Override] protected function unserialize(mixed $data): mixed
   {
     // 如果是整数则不进行序列化
-    if (is_int($data)) return $data;
+    if (is_numeric($data)) return $data;
     return parent::unserialize($data);
   }
 
