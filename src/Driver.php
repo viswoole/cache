@@ -27,7 +27,7 @@ abstract class Driver implements CacheDriverInterface
   /**
    * @var string 缓存前缀
    */
-  protected string $prefix;
+  protected string $prefix = '';
   /**
    * @var int 缓存默认的过期时间
    */
@@ -37,12 +37,35 @@ abstract class Driver implements CacheDriverInterface
    */
   protected string $tag_store = 'TAG_STORE';
   /**
+   * @var string 标签前缀
+   */
+  protected string $tag_prefix = 'tag:';
+  /**
    * @var array 序列化
    */
   protected array $serialize = [
     'get' => 'unserialize',
     'set' => 'serialize'
   ];
+
+  /**
+   * @param string $prefix 缓存前缀
+   * @param string $tag_prefix 缓存标签前缀标识
+   * @param string $tag_store 标签仓库
+   * @param int $expire 缓存过期时间
+   */
+  public function __construct(
+    string $prefix = '',
+    string $tag_prefix = 'tag:',
+    string $tag_store = 'TAG_STORE',
+    int    $expire = 0
+  )
+  {
+    if (!empty($tag_store)) $this->tag_store = $tag_store;
+    $this->tag_prefix = $tag_prefix;
+    $this->prefix = $prefix;
+    $this->expire = $expire;
+  }
 
   /**
    * 设置序列化方法
@@ -72,7 +95,7 @@ abstract class Driver implements CacheDriverInterface
    */
   #[Override] public function getTagKey(string $tag): string
   {
-    return $this->prefix . $tag;
+    return $this->tag_prefix . $tag;
   }
 
   /**

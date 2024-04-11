@@ -43,7 +43,13 @@ class Redis extends Driver
    */
   public function __construct(private readonly ?string $channel_name = null)
   {
-
+    $config = RedisManager::factory()->getChannel($this->channel_name)->getConfig();
+    parent::__construct(
+      $config->prefix,
+      $config->tag_prefix,
+      $config->tag_store,
+      $config->expire
+    );
   }
 
   /**

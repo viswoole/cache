@@ -16,8 +16,6 @@ declare (strict_types=1);
 namespace ViSwoole\Cache;
 
 
-use InvalidArgumentException;
-
 readonly class RedisConfig
 {
 
@@ -44,12 +42,12 @@ readonly class RedisConfig
     public int    $retry_interval = 1000,
     public float  $read_timeout = 0,
     public string $prefix = '',
+    public string $tag_prefix = 'tag:',
     public int    $expire = 0,
     public string $tag_store = 'TAG_STORE',
     public int    $pool_max_size = 64,
     public int    $pool_fill_size = 0
   )
   {
-    if (empty($this->tag_store)) throw new InvalidArgumentException('tag_store can not be empty');
   }
 }

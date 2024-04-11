@@ -26,9 +26,18 @@ use ViSwoole\Core\Channel\ConnectionPool;
  */
 class RedisPool extends ConnectionPool
 {
-  public function __construct(protected RedisConfig $redisConfig)
+  public function __construct(protected RedisConfig $config)
   {
-    parent::__construct($redisConfig->pool_max_size, $redisConfig->pool_fill_size);
+    parent::__construct($config->pool_max_size, $config->pool_fill_size);
+  }
+
+  /**
+   * @inheritDoc
+   * @return RedisConfig
+   */
+  #[Override] public function getConfig(): RedisConfig
+  {
+    return $this->config;
   }
 
   /**
@@ -41,19 +50,19 @@ class RedisPool extends ConnectionPool
   {
     $redis = new Redis();
     $redis->connect(
-      $this->redisConfig->host,
-      $this->redisConfig->port,
-      $this->redisConfig->timeout,
+      $this->config->host,
+      $this->config->port,
+      $this->config->timeout,
       null,
-      $this->redisConfig->retry_interval,
-      $this->redisConfig->read_timeout
+      $this->config->retry_interval,
+      $this->config->read_timeout
     );
-    if (!empty($this->redisConfig->password)) {
-      $result = $redis->auth($this->redisConfig->password);
+    if (!empty($this->config->password)) {
+      $result = $redis->auth($this->config->password);
       if (true !== $result) throw new RedisException('Redis auth fail');
     }
-    if ($this->redisConfig->db_index !== 0) {
-      $result = $redis->select($this->redisConfig->db_index);
+    if ($this->config->db_index !== 0) {
+      $result = $redis->select($this->config->db_index);
       if (true !== $result) throw new RedisException('Redis select db fail');
     }
     return $redis;

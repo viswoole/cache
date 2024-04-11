@@ -30,6 +30,9 @@ use ViSwoole\Core\Coroutine;
 class File extends Driver
 {
   public const string EXPIRE_PATTERN = '/^expire\((\d+)\)/';
+  /**
+   * @var string 存储目录
+   */
   protected string $storage;
   /**
    * @var array 锁
@@ -43,14 +46,15 @@ class File extends Driver
    * @param int $expire 过期时间 默认0不过期
    */
   public function __construct(
-    string           $storage = BASE_PATH . '/runtime/cache',
-    protected string $prefix = '',
-    protected string $tag_store = 'TAG_STORE',
-    protected int    $expire = 0
+    string $storage = BASE_PATH . '/runtime/cache',
+    string $prefix = '',
+    string $tag_prefix = 'tag:',
+    string $tag_store = 'TAG_STORE',
+    int    $expire = 0
   )
   {
-    if (empty($this->tag_store)) $this->tag_store = 'TAG_STORE';
     $this->storage = rtrim($storage, '/');
+    parent::__construct($prefix, $tag_prefix, $tag_store, $expire);
   }
 
   /**

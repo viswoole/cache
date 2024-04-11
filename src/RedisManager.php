@@ -49,6 +49,15 @@ class RedisManager extends ChannelManager
 
   /**
    * @inheritDoc
+   * @return RedisPool|ConnectionPoolInterface
+   */
+  public function getChannel(?string $channel_name = null): RedisPool|ConnectionPoolInterface
+  {
+    return parent::getChannel($channel_name);
+  }
+
+  /**
+   * @inheritDoc
    */
   #[Override] protected function createPool(mixed $config): ConnectionPoolInterface
   {
