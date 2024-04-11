@@ -109,6 +109,16 @@ class Redis extends Driver
 
   /**
    * @inheritDoc
+   */
+  #[Override] protected function unserialize(mixed $data): mixed
+  {
+    // 如果是整数则不进行序列化
+    if (is_int($data)) return $data;
+    return parent::unserialize($data);
+  }
+
+  /**
+   * @inheritDoc
    * @throws RedisException 无法到达 Redis 服务器
    */
   #[Override] public function delete(array|string $keys): false|int
@@ -194,9 +204,19 @@ class Redis extends Driver
 
   /**
    * @inheritDoc
+   */
+  #[Override] protected function serialize(mixed $data): mixed
+  {
+    // 如果是整数 直接返回
+    if (is_int($data)) return $data;
+    return parent::serialize($data);
+  }
+
+  /**
+   * @inheritDoc
    * @throws RedisException
    */
-  public function ttl(string $key): false|int
+  #[Override] public function ttl(string $key): false|int
   {
     $key = $this->getCacheKey($key);
     $result = $this->connect()->ttl($key);
