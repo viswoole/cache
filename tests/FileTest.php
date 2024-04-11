@@ -69,7 +69,7 @@ class FileTest extends TestCase
   {
     $tagInstance = $this->cache->tag('testTag');
     $tagInstance->set('test', 123);
-    static::assertEquals(['testTag'], $this->cache->getTags());
+    static::assertEquals(['tag:testTag'], $this->cache->getTags());
     static::assertEquals(123, $this->cache->get('test'));
     $tagInstance->clear();
     static::assertNull($this->cache->get('test'));
