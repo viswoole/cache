@@ -186,7 +186,11 @@ class File extends Driver
    * @param bool $NX 如果不存在则写入
    * @return bool
    */
-  protected function setRaw(string $key, mixed $value, DateTime|int $expire = null, bool $NX = false
+  protected function setRaw(
+    string       $key,
+    mixed        $value,
+    DateTime|int $expire = null,
+    bool         $NX = false
   ): bool
   {
     $filename = $this->filename($key);
