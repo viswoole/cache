@@ -205,7 +205,7 @@ interface CacheDriverInterface
    *
    * @access public
    * @param string $key 缓存名称
-   * @param array|string $values 集合
+   * @param array|string $values 记录值
    * @return false|int 如果写入的值已存在则会返回false，其他返回写入的数量
    */
   public function sAddArray(string $key, array|string $values): false|int;
