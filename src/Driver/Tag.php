@@ -74,10 +74,14 @@ class Tag implements CacheTagInterface
    * @param DateTime|int|null $expire 有效时间（秒）
    * @return bool
    */
-  #[Override] public function set(string $key, mixed $value, DateTime|int|null $expire = null
+  #[Override] public function set(
+    string            $key,
+    mixed             $value,
+    DateTime|int|null $expire = null,
+    bool              $NX = false
   ): bool
   {
-    $result = $this->driver->set($key, $value, $expire, true);
+    $result = $this->driver->set($key, $value, $expire, $NX);
     if ($result === false) return false;
     return $this->push($key);
   }
@@ -107,10 +111,7 @@ class Tag implements CacheTagInterface
   }
 
   /**
-   * 删除对应标签下的缓存
-   *
-   * @param string|array $keys 要删除的缓存
-   * @return void
+   * @inheritDoc
    */
   #[Override] public function remove(array|string $keys): void
   {
