@@ -57,12 +57,12 @@ class FileTest extends TestCase
 
   public function testArray()
   {
-    $this->cache->set('test', [1, 2, 3]);
+    $this->cache->sAddArray('test', [1, 2, 3]);
     static::assertEquals([1, 2, 3], $this->cache->get('test'));
     $this->cache->sAddArray('test', [4, 5, 6]);
-    static::assertEquals([1, 2, 3, 4, 5, 6], $this->cache->get('test'));
+    static::assertEquals([1, 2, 3, 4, 5, 6], $this->cache->getArray('test'));
     $this->cache->sRemoveArray('test', [4, 5, 6]);
-    static::assertEquals([1, 2, 3], $this->cache->get('test'));
+    static::assertEquals([1, 2, 3], $this->cache->getArray('test'));
   }
 
   public function testTag()
