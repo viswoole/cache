@@ -23,7 +23,6 @@ use ViSwoole\Core\ServiceProvider;
  */
 class CacheService extends ServiceProvider
 {
-
   /**
    * @inheritDoc
    */
