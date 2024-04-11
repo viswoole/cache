@@ -56,4 +56,11 @@ interface CacheTagInterface
    * @return bool
    */
   public function push(string $key): bool;
+
+  /**
+   * 获取标签集合中的缓存键
+   *
+   * @return array 如果是多个tag返回[tag=>keyList,...tag=>keyList]，否则返回[key,...key]
+   */
+  public function get(): array;
 }
