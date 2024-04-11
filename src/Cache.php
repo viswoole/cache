@@ -25,7 +25,7 @@ use ViSwoole\Cache\Exception\CacheErrorException;
 use ViSwoole\Core\Facades\Config;
 
 /**
- * 文件缓存驱动
+ * 缓存驱动管理器
  *
  * @method static int|false inc(string $key, int $step = 1) 自增缓存（针对数值缓存）
  * @method static mixed get(string $key, mixed $default = null) 获取缓存
