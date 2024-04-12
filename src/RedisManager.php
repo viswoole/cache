@@ -29,7 +29,7 @@ class RedisManager extends ChannelManager
 {
   protected function __construct()
   {
-    $channels = config('redis.channels');
+    $channels = config('redis.channels', []);
     $defaultChannel = config('redis.default');
     if (empty($defaultChannel)) {
       $defaultChannel = array_keys($channels)[0] ?? '';
