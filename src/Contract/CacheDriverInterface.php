@@ -225,7 +225,6 @@ interface CacheDriverInterface
    * @access public
    * @param string $key 集合名称
    * @param array|string $values 要删除的值
-   * @param bool $serialize 是否序列化
    * @return false|int
    */
   public function sRemoveArray(

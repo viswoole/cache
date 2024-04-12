@@ -72,6 +72,7 @@ class Tag implements CacheTagInterface
    * @param string $key 缓存变量名
    * @param mixed $value 存储数据
    * @param DateTime|int|null $expire 有效时间（秒）
+   * @param bool $NX
    * @return bool
    */
   #[Override] public function set(
