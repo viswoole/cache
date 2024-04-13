@@ -36,6 +36,9 @@
     "viswoole": {
       "services": [
         "\\ViSwoole\\Cache\\CacheService"
+      ],
+      "configs": [
+        "config"
       ]
     }
   }
