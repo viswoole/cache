@@ -28,7 +28,7 @@ class CacheService extends ServiceProvider
    */
   #[Override] public function boot(): void
   {
-    $this->app->make('redisManager');
+    $this->app->make('redis');
   }
 
   /**
@@ -37,6 +37,6 @@ class CacheService extends ServiceProvider
   #[Override] public function register(): void
   {
     $this->app->bind('cache', Cache::class);
-    $this->app->bind('redisManager', RedisManager::class);
+    $this->app->bind('redis', RedisManager::class);
   }
 }
