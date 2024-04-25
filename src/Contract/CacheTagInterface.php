@@ -42,7 +42,7 @@ interface CacheTagInterface
   public function clear(): void;
 
   /**
-   * 删除对应标签下的
+   * 删除对应标签下的缓存
    *
    * @param string|array $keys 要删除的缓存
    * @return void
