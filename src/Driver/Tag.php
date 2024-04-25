@@ -139,7 +139,7 @@ class Tag implements CacheTagInterface
   {
     $arr = [];
     foreach ($this->tags as $tag) {
-      $list = $this->driver->get($tag);
+      $list = $this->driver->get($tag, []);
       if (count($this->tags) === 1) return $list;
       $arr[$tag] = $list;
     }
